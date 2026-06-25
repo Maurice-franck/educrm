@@ -111,7 +111,7 @@ class Auth {
             case 'CHEF_DEPARTEMENT':
                 return '/educrm/prospects';
             case 'MARKETISTE':
-                return '/educrm/relances';
+                return '/educrm/marketiste/supervision';
             default:
                 return '/educrm/';
         }
