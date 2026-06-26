@@ -10,6 +10,10 @@ class Relance {
     public $resultat;
     public $commentaire;
     public $date_relance;
+    public $departement_id;
+    public $prospect_nom;
+    public $prospect_telephone;
+    public $marketiste_nom;
     
     public function __construct($db) {
         $this->conn = $db;
@@ -52,14 +56,20 @@ class Relance {
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom,
-                  s.nom as specialite_nom
+                  s.nom as specialite_nom,
+                  d.id as departement_id,
+                  d.nom as departement_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
                   LEFT JOIN specialites s ON p.specialite_id = s.id
+                  LEFT JOIN departements d ON s.departement_id = d.id
                   WHERE 1=1";
         
         // Appliquer les filtres
+        if(!empty($filters['departement_id'])) {
+            $query .= " AND d.id = :departement_id";
+        }
         if(!empty($filters['marketiste_id'])) {
             $query .= " AND r.utilisateur_id = :marketiste_id";
         }
@@ -81,6 +91,9 @@ class Relance {
         $stmt = $this->conn->prepare($query);
         
         // Lier les filtres
+        if(!empty($filters['departement_id'])) {
+            $stmt->bindParam(":departement_id", $filters['departement_id']);
+        }
         if(!empty($filters['marketiste_id'])) {
             $stmt->bindParam(":marketiste_id", $filters['marketiste_id']);
         }
@@ -116,9 +129,18 @@ class Relance {
                   SUM(CASE WHEN resultat = 'RDV_OBTENU' THEN 1 ELSE 0 END) as rdv_obtenu,
                   SUM(CASE WHEN resultat = 'A_RAPPELER' THEN 1 ELSE 0 END) as a_rappeler,
                   SUM(CASE WHEN resultat = 'REFUSE' THEN 1 ELSE 0 END) as refuse
-                  FROM " . $this->table . " r
-                  WHERE 1=1";
+                  FROM " . $this->table . " r";
         
+        if(!empty($filters['departement_id'])) {
+            $query .= " LEFT JOIN prospects p ON r.prospect_id = p.id
+                  LEFT JOIN specialites s ON p.specialite_id = s.id";
+        }
+        
+        $query .= " WHERE 1=1";
+        
+        if(!empty($filters['departement_id'])) {
+            $query .= " AND s.departement_id = :departement_id";
+        }
         if(!empty($filters['marketiste_id'])) {
             $query .= " AND r.utilisateur_id = :marketiste_id";
         }
@@ -128,6 +150,9 @@ class Relance {
         
         $stmt = $this->conn->prepare($query);
         
+        if(!empty($filters['departement_id'])) {
+            $stmt->bindParam(":departement_id", $filters['departement_id']);
+        }
         if(!empty($filters['marketiste_id'])) {
             $stmt->bindParam(":marketiste_id", $filters['marketiste_id']);
         }
@@ -213,10 +238,12 @@ class Relance {
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   p.email as prospect_email,
-                  CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
+                  CONCAT(u.nom, ' ', u.prenom) as marketiste_nom,
+                  s.departement_id as departement_id
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
+                  LEFT JOIN specialites s ON p.specialite_id = s.id
                   WHERE r.id = :id LIMIT 0,1";
         
         $stmt = $this->conn->prepare($query);
@@ -232,6 +259,10 @@ class Relance {
             $this->resultat = $row['resultat'];
             $this->commentaire = $row['commentaire'];
             $this->date_relance = $row['date_relance'];
+            $this->departement_id = $row['departement_id'];
+            $this->prospect_nom = $row['prospect_nom'];
+            $this->prospect_telephone = $row['prospect_telephone'];
+            $this->marketiste_nom = $row['marketiste_nom'];
             return true;
         }
         return false;

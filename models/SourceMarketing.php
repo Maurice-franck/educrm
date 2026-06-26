@@ -101,10 +101,7 @@ class SourceMarketing {
         }
         $stmt->execute();
         
-        if($stmt->rowCount() > 0) {
-            return true;
-        }
-        return false;
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
     
     // Compter le nombre de prospects par source

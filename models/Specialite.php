@@ -152,10 +152,7 @@ class Specialite {
         }
         $stmt->execute();
         
-        if($stmt->rowCount() > 0) {
-            return true;
-        }
-        return false;
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
 }
 ?>

@@ -12,6 +12,11 @@ class RendezVous {
     public $objet;
     public $statut;
     public $observation;
+    public $departement_id;
+    public $prospect_nom;
+    public $prospect_telephone;
+    public $prospect_email;
+    public $marketiste_nom;
     
     public function __construct($db) {
         $this->conn = $db;
@@ -126,10 +131,12 @@ class RendezVous {
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   p.email as prospect_email,
-                  CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
+                  CONCAT(u.nom, ' ', u.prenom) as marketiste_nom,
+                  s.departement_id as departement_id
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
+                  LEFT JOIN specialites s ON p.specialite_id = s.id
                   WHERE r.id = :id LIMIT 0,1";
         
         $stmt = $this->conn->prepare($query);
@@ -147,6 +154,11 @@ class RendezVous {
             $this->objet = $row['objet'];
             $this->statut = $row['statut'];
             $this->observation = $row['observation'];
+            $this->departement_id = $row['departement_id'];
+            $this->prospect_nom = $row['prospect_nom'];
+            $this->prospect_telephone = $row['prospect_telephone'];
+            $this->prospect_email = $row['prospect_email'];
+            $this->marketiste_nom = $row['marketiste_nom'];
             return true;
         }
         return false;
@@ -282,55 +294,100 @@ class RendezVous {
     }
     
     // Rendez-vous du jour
-    public function getTodayRendezVous() {
+    public function getTodayRendezVous($marketiste_id = null, $departement_id = null) {
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE r.date_rdv = CURDATE()
-                  ORDER BY r.heure_rdv ASC";
+                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
+        if (!empty($departement_id)) {
+            $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
+        }
+        $query .= " WHERE r.date_rdv = CURDATE()";
+        if (!empty($marketiste_id)) {
+            $query .= " AND r.utilisateur_id = :marketiste_id";
+        }
+        if (!empty($departement_id)) {
+            $query .= " AND s.departement_id = :departement_id";
+        }
+        $query .= " ORDER BY r.heure_rdv ASC";
         
         $stmt = $this->conn->prepare($query);
+        if (!empty($marketiste_id)) {
+            $stmt->bindParam(":marketiste_id", $marketiste_id);
+        }
+        if (!empty($departement_id)) {
+            $stmt->bindParam(":departement_id", $departement_id);
+        }
         $stmt->execute();
         return $stmt;
     }
     
     // Rendez-vous à venir
-    public function getUpcomingRendezVous($limit = 10) {
+    public function getUpcomingRendezVous($limit = 10, $marketiste_id = null, $departement_id = null) {
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE r.date_rdv >= CURDATE() AND r.statut IN ('PLANIFIE', 'CONFIRME')
-                  ORDER BY r.date_rdv ASC, r.heure_rdv ASC
+                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
+        if (!empty($departement_id)) {
+            $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
+        }
+        $query .= " WHERE r.date_rdv >= CURDATE() AND r.statut IN ('PLANIFIE', 'CONFIRME')";
+        if (!empty($marketiste_id)) {
+            $query .= " AND r.utilisateur_id = :marketiste_id";
+        }
+        if (!empty($departement_id)) {
+            $query .= " AND s.departement_id = :departement_id";
+        }
+        $query .= " ORDER BY r.date_rdv ASC, r.heure_rdv ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
+        if (!empty($marketiste_id)) {
+            $stmt->bindParam(":marketiste_id", $marketiste_id);
+        }
+        if (!empty($departement_id)) {
+            $stmt->bindParam(":departement_id", $departement_id);
+        }
         $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt;
     }
     
     // Calendrier des rendez-vous par mois
-    public function getCalendar($year, $month) {
+    public function getCalendar($year, $month, $marketiste_id = null, $departement_id = null) {
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE YEAR(r.date_rdv) = :year AND MONTH(r.date_rdv) = :month
-                  ORDER BY r.date_rdv ASC, r.heure_rdv ASC";
+                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
+        if (!empty($departement_id)) {
+            $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
+        }
+        $query .= " WHERE YEAR(r.date_rdv) = :year AND MONTH(r.date_rdv) = :month";
+        if (!empty($marketiste_id)) {
+            $query .= " AND r.utilisateur_id = :marketiste_id";
+        }
+        if (!empty($departement_id)) {
+            $query .= " AND s.departement_id = :departement_id";
+        }
+        $query .= " ORDER BY r.date_rdv ASC, r.heure_rdv ASC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":year", $year);
         $stmt->bindParam(":month", $month);
+        if (!empty($marketiste_id)) {
+            $stmt->bindParam(":marketiste_id", $marketiste_id);
+        }
+        if (!empty($departement_id)) {
+            $stmt->bindParam(":departement_id", $departement_id);
+        }
         $stmt->execute();
         return $stmt;
     }

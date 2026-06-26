@@ -14,6 +14,8 @@ class Auth {
     public $email;
     public $role;
     public $statut;
+    public $departement_id;
+    public $departement_nom;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -26,20 +28,22 @@ class Auth {
     public function login(string $email, string $password): bool {
         $email = htmlspecialchars(strip_tags($email));
 
-        $query = "SELECT id, nom, prenom, email, mot_de_passe, role, statut 
-                  FROM " . $this->table . " 
-                  WHERE email = :email AND statut = 'ACTIF' 
+        $query = "SELECT u.id, u.nom, u.prenom, u.email, u.mot_de_passe, u.role, u.statut, u.departement_id,
+                  d.nom as departement_nom
+                  FROM " . $this->table . " u
+                  LEFT JOIN departements d ON u.departement_id = d.id
+                  WHERE u.email = :email AND u.statut = 'ACTIF' 
                   LIMIT 1";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
         $stmt->execute();
 
-        if ($stmt->rowCount() === 0) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
             return false;
         }
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Vérification du mot de passe (supporte password_hash ET plain text legacy)
         $passwordValid = false;
@@ -61,6 +65,8 @@ class Auth {
         $this->email  = $row['email'];
         $this->role   = $row['role'];
         $this->statut = $row['statut'];
+        $this->departement_id   = $row['departement_id'];
+        $this->departement_nom  = $row['departement_nom'];
 
         return true;
     }
@@ -77,6 +83,8 @@ class Auth {
         $_SESSION['user_prenom'] = $this->prenom;
         $_SESSION['user_email']  = $this->email;
         $_SESSION['user_role']   = $this->role;
+        $_SESSION['departement_id']  = $this->departement_id;
+        $_SESSION['departement_nom'] = $this->departement_nom;
         $_SESSION['logged_in']   = true;
     }
 
@@ -109,9 +117,9 @@ class Auth {
             case 'ADMIN':
                 return '/educrm/dashboard';
             case 'CHEF_DEPARTEMENT':
-                return '/educrm/prospects';
+                return '/educrm/chef-departement/supervision';
             case 'MARKETISTE':
-                return '/educrm/relances';
+                return '/educrm/marketiste/supervision';
             default:
                 return '/educrm/';
         }

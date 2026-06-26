@@ -11,6 +11,8 @@ class Utilisateur {
     public $mot_de_passe;
     public $role;
     public $statut;
+    public $departement_id;
+    public $departement_nom;
     public $date_creation;
     
     public function __construct($db) {
@@ -26,6 +28,7 @@ class Utilisateur {
                       email = :email, 
                       mot_de_passe = :mot_de_passe, 
                       role = :role, 
+                      departement_id = :departement_id,
                       statut = 'ACTIF'";
         
         $stmt = $this->conn->prepare($query);
@@ -37,6 +40,10 @@ class Utilisateur {
         $this->email = htmlspecialchars(strip_tags($this->email));
         $this->mot_de_passe = password_hash($this->mot_de_passe, PASSWORD_DEFAULT);
         $this->role = htmlspecialchars(strip_tags($this->role));
+        // Le département n'a de sens que pour un CHEF_DEPARTEMENT
+        $this->departement_id = ($this->role === 'CHEF_DEPARTEMENT' && !empty($this->departement_id))
+            ? $this->departement_id
+            : null;
         
         // Lier les valeurs
         $stmt->bindParam(":nom", $this->nom);
@@ -45,6 +52,7 @@ class Utilisateur {
         $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":mot_de_passe", $this->mot_de_passe);
         $stmt->bindParam(":role", $this->role);
+        $stmt->bindParam(":departement_id", $this->departement_id);
         
         if($stmt->execute()) {
             return true;
@@ -54,7 +62,10 @@ class Utilisateur {
     
     // Lire tous les utilisateurs
     public function readAll() {
-        $query = "SELECT * FROM " . $this->table . " ORDER BY date_creation DESC";
+        $query = "SELECT u.*, d.nom as departement_nom 
+                  FROM " . $this->table . " u
+                  LEFT JOIN departements d ON u.departement_id = d.id
+                  ORDER BY u.date_creation DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -62,7 +73,10 @@ class Utilisateur {
     
     // Lire un utilisateur par ID
     public function readOne() {
-        $query = "SELECT * FROM " . $this->table . " WHERE id = :id LIMIT 0,1";
+        $query = "SELECT u.*, d.nom as departement_nom 
+                  FROM " . $this->table . " u
+                  LEFT JOIN departements d ON u.departement_id = d.id
+                  WHERE u.id = :id LIMIT 0,1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $this->id);
         $stmt->execute();
@@ -76,6 +90,8 @@ class Utilisateur {
             $this->email = $row['email'];
             $this->role = $row['role'];
             $this->statut = $row['statut'];
+            $this->departement_id = $row['departement_id'];
+            $this->departement_nom = $row['departement_nom'];
             $this->date_creation = $row['date_creation'];
             return true;
         }
@@ -89,7 +105,8 @@ class Utilisateur {
                       prenom = :prenom, 
                       telephone = :telephone, 
                       email = :email, 
-                      role = :role
+                      role = :role,
+                      departement_id = :departement_id
                   WHERE id = :id";
         
         $stmt = $this->conn->prepare($query);
@@ -99,12 +116,17 @@ class Utilisateur {
         $this->telephone = htmlspecialchars(strip_tags($this->telephone));
         $this->email = htmlspecialchars(strip_tags($this->email));
         $this->role = htmlspecialchars(strip_tags($this->role));
+        // Le département n'a de sens que pour un CHEF_DEPARTEMENT
+        $this->departement_id = ($this->role === 'CHEF_DEPARTEMENT' && !empty($this->departement_id))
+            ? $this->departement_id
+            : null;
         
         $stmt->bindParam(":nom", $this->nom);
         $stmt->bindParam(":prenom", $this->prenom);
         $stmt->bindParam(":telephone", $this->telephone);
         $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":role", $this->role);
+        $stmt->bindParam(":departement_id", $this->departement_id);
         $stmt->bindParam(":id", $this->id);
         
         if($stmt->execute()) {
@@ -164,10 +186,7 @@ class Utilisateur {
         $stmt->bindParam(":email", $this->email);
         $stmt->execute();
         
-        if($stmt->rowCount() > 0) {
-            return true;
-        }
-        return false;
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
 }
 ?>

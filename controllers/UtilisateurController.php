@@ -25,6 +25,9 @@ class UtilisateurController {
     
     // Afficher le formulaire d'ajout
     public function create() {
+        require_once 'models/Departement.php';
+        $departement = new Departement($this->db);
+        $departements = $departement->readAll()->fetchAll(PDO::FETCH_ASSOC);
         require_once 'views/utilisateurs/create.php';
     }
     
@@ -37,6 +40,16 @@ class UtilisateurController {
             $this->utilisateur->email = $_POST['email'];
             $this->utilisateur->mot_de_passe = $_POST['mot_de_passe'];
             $this->utilisateur->role = $_POST['role'];
+            $this->utilisateur->departement_id = isset($_POST['departement_id']) && $_POST['departement_id'] !== ''
+                ? $_POST['departement_id']
+                : null;
+            
+            // Un chef de département doit obligatoirement être rattaché à un département
+            if ($this->utilisateur->role === 'CHEF_DEPARTEMENT' && empty($this->utilisateur->departement_id)) {
+                $_SESSION['error'] = "Veuillez sélectionner le département du chef de département.";
+                header("Location: /educrm/utilisateurs/create");
+                exit();
+            }
             
             // Vérifier si l'email existe déjà
             if($this->utilisateur->emailExists()) {
@@ -60,6 +73,9 @@ class UtilisateurController {
     public function edit($id) {
         $this->utilisateur->id = $id;
         if($this->utilisateur->readOne()) {
+            require_once 'models/Departement.php';
+            $departement = new Departement($this->db);
+            $departements = $departement->readAll()->fetchAll(PDO::FETCH_ASSOC);
             require_once 'views/utilisateurs/edit.php';
         } else {
             $_SESSION['error'] = "Utilisateur non trouvé.";
@@ -77,6 +93,16 @@ class UtilisateurController {
             $this->utilisateur->telephone = $_POST['telephone'];
             $this->utilisateur->email = $_POST['email'];
             $this->utilisateur->role = $_POST['role'];
+            $this->utilisateur->departement_id = isset($_POST['departement_id']) && $_POST['departement_id'] !== ''
+                ? $_POST['departement_id']
+                : null;
+            
+            // Un chef de département doit obligatoirement être rattaché à un département
+            if ($this->utilisateur->role === 'CHEF_DEPARTEMENT' && empty($this->utilisateur->departement_id)) {
+                $_SESSION['error'] = "Veuillez sélectionner le département du chef de département.";
+                header("Location: /educrm/utilisateurs/$id/edit");
+                exit();
+            }
             
             if($this->utilisateur->update()) {
                 $_SESSION['success'] = "Utilisateur modifié avec succès.";

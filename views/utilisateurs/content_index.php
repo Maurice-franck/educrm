@@ -56,6 +56,9 @@
                                     <span class="badge <?php echo $badgeClass; ?>">
                                         <?php echo $roleLabel; ?>
                                     </span>
+                                    <?php if ($user['role'] == 'CHEF_DEPARTEMENT' && !empty($user['departement_nom'])): ?>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars($user['departement_nom']); ?></small>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="status-badge <?php echo $user['statut'] == 'ACTIF' ? 'status-active' : 'status-inactive'; ?>">

@@ -52,7 +52,7 @@
                     <label for="role" class="form-label">
                         <i class="fas fa-tag me-1"></i>Rôle <span class="text-danger">*</span>
                     </label>
-                    <select class="form-select" id="role" name="role" required>
+                    <select class="form-select" id="role" name="role" required onchange="toggleDepartementField()">
                         <option value="ADMIN" <?php echo $this->utilisateur->role == 'ADMIN' ? 'selected' : ''; ?>>
                             Administrateur
                         </option>
@@ -63,6 +63,26 @@
                             Chef de département
                         </option>
                     </select>
+                </div>
+            </div>
+
+            <div class="row" id="departement_field" style="<?php echo $this->utilisateur->role == 'CHEF_DEPARTEMENT' ? '' : 'display:none;'; ?>">
+                <div class="col-md-6 mb-3">
+                    <label for="departement_id" class="form-label">
+                        <i class="fas fa-building me-1"></i>Département <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="departement_id" name="departement_id">
+                        <option value="">Sélectionner un département</option>
+                        <?php foreach ($departements as $dept): ?>
+                            <option value="<?php echo $dept['id']; ?>"
+                                <?php echo $this->utilisateur->departement_id == $dept['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($dept['nom']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle me-1"></i>Le chef ne supervisera que les prospects de ce département
+                    </small>
                 </div>
             </div>
             
@@ -82,3 +102,19 @@
         </form>
     </div>
 </div>
+
+<script>
+function toggleDepartementField() {
+    var role = document.getElementById('role').value;
+    var field = document.getElementById('departement_field');
+    var select = document.getElementById('departement_id');
+    if (role === 'CHEF_DEPARTEMENT') {
+        field.style.display = '';
+        select.setAttribute('required', 'required');
+    } else {
+        field.style.display = 'none';
+        select.removeAttribute('required');
+        select.value = '';
+    }
+}
+</script>

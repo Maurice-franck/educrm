@@ -18,6 +18,10 @@ class Prospect {
     public $statut;
     public $commentaire;
     public $date_creation;
+    public $departement_id;
+    public $departement_nom;
+    public $specialite_nom;
+    public $marketiste_nom;
     
     public function __construct($db) {
         $this->conn = $db;
@@ -152,7 +156,8 @@ class Prospect {
                   s.nom as specialite_nom,
                   sm.nom as source_nom,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom,
-                  d.nom as departement_nom
+                  d.nom as departement_nom,
+                  d.id as departement_id
                   FROM " . $this->table . " p
                   LEFT JOIN specialites s ON p.specialite_id = s.id
                   LEFT JOIN sources_marketing sm ON p.source_id = sm.id
@@ -181,6 +186,10 @@ class Prospect {
             $this->statut = $row['statut'];
             $this->commentaire = $row['commentaire'];
             $this->date_creation = $row['date_creation'];
+            $this->departement_id = $row['departement_id'];
+            $this->departement_nom = $row['departement_nom'];
+            $this->specialite_nom = $row['specialite_nom'];
+            $this->marketiste_nom = $row['marketiste_nom'];
             return true;
         }
         return false;

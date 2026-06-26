@@ -19,6 +19,12 @@ require_once 'controllers/ProspectController.php';
 require_once 'controllers/RelanceController.php';
 require_once 'controllers/RendezVousController.php';
 require_once 'controllers/DashboardController.php';
+require_once 'controllers/marketiste/MarketisteSupervisionController.php';
+require_once 'controllers/marketiste/MarketisteRendezVousController.php';
+require_once 'controllers/marketiste/MarketisteProspectController.php';
+require_once 'controllers/chef-departement/ChefDepartementSupervisionController.php';
+require_once 'controllers/chef-departement/ChefDepartementRendezVousController.php';
+require_once 'controllers/chef-departement/ChefDepartementProspectController.php';
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -55,10 +61,11 @@ switch ($path) {
         if (Auth::isLoggedIn()) {
             $redirect = Auth::getRedirectByRole($_SESSION['user_role']);
             header('Location: ' . $redirect);
+            exit;
         } else {
             header('Location: /educrm/login');
+            exit;
         }
-        exit;
 
     // ══════════════════════════════════════════════
     //  DASHBOARD (Admin + Chef de département)
@@ -267,12 +274,251 @@ switch ($path) {
         break;
 
     // ══════════════════════════════════════════════
+    //  ESPACE MARKETISTE (Marketiste uniquement)
+    //  Toutes les données sont filtrées sur $_SESSION['user_id']
+    // ══════════════════════════════════════════════
+
+    // --- Supervision (relances) ---
+    case '/marketiste/supervision':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteSupervisionController();
+        $controller->index();
+        break;
+
+    case '/marketiste/supervision/all':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteSupervisionController();
+        $controller->all();
+        break;
+
+    case '/marketiste/supervision/create':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteSupervisionController();
+        $controller->create();
+        break;
+
+    case '/marketiste/supervision/store':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteSupervisionController();
+        $controller->store();
+        break;
+
+    // --- Rendez-vous ---
+    case '/marketiste/rendezvous':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteRendezVousController();
+        $controller->index();
+        break;
+
+    case '/marketiste/rendezvous/all':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteRendezVousController();
+        $controller->all();
+        break;
+
+    case '/marketiste/rendezvous/calendar':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteRendezVousController();
+        $controller->calendar();
+        break;
+
+    case '/marketiste/rendezvous/create':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteRendezVousController();
+        $controller->create();
+        break;
+
+    case '/marketiste/rendezvous/store':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteRendezVousController();
+        $controller->store();
+        break;
+
+    // --- Prospects ---
+    case '/marketiste/prospects':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteProspectController();
+        $controller->index();
+        break;
+
+    case '/marketiste/prospects/create':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteProspectController();
+        $controller->create();
+        break;
+
+    case '/marketiste/prospects/store':
+        AuthMiddleware::check(['MARKETISTE']);
+        $controller = new MarketisteProspectController();
+        $controller->store();
+        break;
+
+    // ══════════════════════════════════════════════
+    //  ESPACE CHEF DE DÉPARTEMENT
+    //  Visualisation élargie à tout le département ($_SESSION['departement_id'])
+    // ══════════════════════════════════════════════
+
+    // --- Supervision (relances) ---
+    case '/chef-departement/supervision':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementSupervisionController();
+        $controller->index();
+        break;
+
+    case '/chef-departement/supervision/all':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementSupervisionController();
+        $controller->all();
+        break;
+
+    case '/chef-departement/supervision/create':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementSupervisionController();
+        $controller->create();
+        break;
+
+    case '/chef-departement/supervision/store':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementSupervisionController();
+        $controller->store();
+        break;
+
+    // --- Rendez-vous ---
+    case '/chef-departement/rendezvous':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementRendezVousController();
+        $controller->index();
+        break;
+
+    case '/chef-departement/rendezvous/all':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementRendezVousController();
+        $controller->all();
+        break;
+
+    case '/chef-departement/rendezvous/calendar':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementRendezVousController();
+        $controller->calendar();
+        break;
+
+    case '/chef-departement/rendezvous/create':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementRendezVousController();
+        $controller->create();
+        break;
+
+    case '/chef-departement/rendezvous/store':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementRendezVousController();
+        $controller->store();
+        break;
+
+    // --- Prospects ---
+    case '/chef-departement/prospects':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementProspectController();
+        $controller->index();
+        break;
+
+    case '/chef-departement/prospects/create':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementProspectController();
+        $controller->create();
+        break;
+
+    case '/chef-departement/prospects/store':
+        AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+        $controller = new ChefDepartementProspectController();
+        $controller->store();
+        break;
+
+    // ══════════════════════════════════════════════
     //  ROUTES DYNAMIQUES (avec paramètres ID)
     // ══════════════════════════════════════════════
 
     default:
+        // --- Espace Chef de Département : Supervision (relances) ---
+        // IMPORTANT : testées en premier (même raison que pour /marketiste/...)
+        if (preg_match('/\/chef-departement\/supervision\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementSupervisionController())->edit($m[1]);
+        } elseif (preg_match('/\/chef-departement\/supervision\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementSupervisionController())->update($m[1]);
+        } elseif (preg_match('/\/chef-departement\/supervision\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementSupervisionController())->show($m[1]);
+        }
+        // --- Espace Chef de Département : Rendez-vous ---
+        elseif (preg_match('/\/chef-departement\/rendezvous\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementRendezVousController())->edit($m[1]);
+        } elseif (preg_match('/\/chef-departement\/rendezvous\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementRendezVousController())->update($m[1]);
+        } elseif (preg_match('/\/chef-departement\/rendezvous\/(\d+)\/change-statut/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementRendezVousController())->changeStatut($m[1]);
+        } elseif (preg_match('/\/chef-departement\/rendezvous\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementRendezVousController())->show($m[1]);
+        }
+        // --- Espace Chef de Département : Prospects ---
+        elseif (preg_match('/\/chef-departement\/prospects\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementProspectController())->edit($m[1]);
+        } elseif (preg_match('/\/chef-departement\/prospects\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementProspectController())->update($m[1]);
+        } elseif (preg_match('/\/chef-departement\/prospects\/(\d+)\/change-statut/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementProspectController())->changeStatut($m[1]);
+        } elseif (preg_match('/\/chef-departement\/prospects\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['CHEF_DEPARTEMENT']);
+            (new ChefDepartementProspectController())->show($m[1]);
+        }
+        // --- Espace Marketiste : Supervision (relances) ---
+        elseif (preg_match('/\/marketiste\/supervision\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteSupervisionController())->edit($m[1]);
+        } elseif (preg_match('/\/marketiste\/supervision\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteSupervisionController())->update($m[1]);
+        } elseif (preg_match('/\/marketiste\/supervision\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteSupervisionController())->show($m[1]);
+        }
+        // --- Espace Marketiste : Rendez-vous ---
+        elseif (preg_match('/\/marketiste\/rendezvous\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteRendezVousController())->edit($m[1]);
+        } elseif (preg_match('/\/marketiste\/rendezvous\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteRendezVousController())->update($m[1]);
+        } elseif (preg_match('/\/marketiste\/rendezvous\/(\d+)\/change-statut/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteRendezVousController())->changeStatut($m[1]);
+        } elseif (preg_match('/\/marketiste\/rendezvous\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteRendezVousController())->show($m[1]);
+        }
+        // --- Espace Marketiste : Prospects ---
+        elseif (preg_match('/\/marketiste\/prospects\/(\d+)\/edit/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteProspectController())->edit($m[1]);
+        } elseif (preg_match('/\/marketiste\/prospects\/(\d+)\/update/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteProspectController())->update($m[1]);
+        } elseif (preg_match('/\/marketiste\/prospects\/(\d+)\/change-statut/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteProspectController())->changeStatut($m[1]);
+        } elseif (preg_match('/\/marketiste\/prospects\/(\d+)/', $path, $m)) {
+            AuthMiddleware::check(['MARKETISTE']);
+            (new MarketisteProspectController())->show($m[1]);
+        }
         // --- Utilisateurs ---
-        if (preg_match('/\/utilisateurs\/(\d+)\/edit/', $path, $m)) {
+        elseif (preg_match('/\/utilisateurs\/(\d+)\/edit/', $path, $m)) {
             AuthMiddleware::check(['ADMIN']);
             (new UtilisateurController())->edit($m[1]);
         } elseif (preg_match('/\/utilisateurs\/(\d+)\/update/', $path, $m)) {
@@ -332,7 +578,7 @@ switch ($path) {
             AuthMiddleware::check(['ADMIN']);
             (new SourceMarketingController())->delete($m[1]);
         }
-        // --- Prospects ---
+        // --- Prospects (admin / chef / marketiste sur routes non-marketiste) ---
         elseif (preg_match('/\/prospects\/(\d+)\/edit/', $path, $m)) {
             AuthMiddleware::check(['ADMIN', 'MARKETISTE']);
             (new ProspectController())->edit($m[1]);
@@ -366,7 +612,7 @@ switch ($path) {
             AuthMiddleware::check(['ADMIN', 'MARKETISTE']);
             (new RelanceController())->show($m[1]);
         }
-        // --- Rendez-vous ---
+        // --- Rendez-vous (admin / chef / marketiste sur routes non-marketiste) ---
         elseif (preg_match('/\/rendezvous\/(\d+)\/edit/', $path, $m)) {
             AuthMiddleware::check(['ADMIN', 'MARKETISTE', 'CHEF_DEPARTEMENT']);
             (new RendezVousController())->edit($m[1]);
