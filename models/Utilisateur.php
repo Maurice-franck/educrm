@@ -188,5 +188,42 @@ class Utilisateur {
         
         return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
+
+// ============================================================
+// AJOUTE CES 4 MÉTHODES dans models/Utilisateur.php
+// juste avant la dernière accolade } de la classe
+// ============================================================
+
+    public function getById($id) {
+    $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+public function getByEmail($email) {
+    $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE email = ?");
+    $stmt->execute([$email]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+public function updateProfil($id, $data) {
+    $stmt = $this->conn->prepare("
+        UPDATE utilisateurs SET
+            nom       = :nom,
+            prenom    = :prenom,
+            telephone = :telephone,
+            email     = :email
+        WHERE id = :id
+    ");
+    $data['id'] = $id;
+    return $stmt->execute($data);
+}
+
+public function updateMotDePasse($id, $hash) {
+    $stmt = $this->conn->prepare("UPDATE utilisateurs SET mot_de_passe = ? WHERE id = ?");
+    return $stmt->execute([$hash, $id]);
+}
+
+   
 }
 ?>

@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 /**
  * EduCRM — Point d'entrée principal
  * Architecture MVC — Programmation Orientée Objet
@@ -22,9 +24,13 @@ require_once 'controllers/DashboardController.php';
 require_once 'controllers/marketiste/MarketisteSupervisionController.php';
 require_once 'controllers/marketiste/MarketisteRendezVousController.php';
 require_once 'controllers/marketiste/MarketisteProspectController.php';
+
 require_once 'controllers/chef-departement/ChefDepartementSupervisionController.php';
 require_once 'controllers/chef-departement/ChefDepartementRendezVousController.php';
 require_once 'controllers/chef-departement/ChefDepartementProspectController.php';
+
+require_once 'controllers/ParametreController.php';
+
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -67,6 +73,30 @@ switch ($path) {
             exit;
         }
 
+
+case '/parametres':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->index();
+        break;
+
+    case '/parametres/profil':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateProfil();
+        break;
+
+    case '/parametres/mot-de-passe':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateMotDePasse();
+        break;
+
+    case '/parametres/application':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateApplication();
+        break;
     // ══════════════════════════════════════════════
     //  DASHBOARD (Admin + Chef de département)
     // ══════════════════════════════════════════════
@@ -353,8 +383,7 @@ switch ($path) {
         $controller->store();
         break;
 
-    // ══════════════════════════════════════════════
-    //  ESPACE CHEF DE DÉPARTEMENT
+
     //  Visualisation élargie à tout le département ($_SESSION['departement_id'])
     // ══════════════════════════════════════════════
 
@@ -433,11 +462,6 @@ switch ($path) {
         $controller->store();
         break;
 
-    // ══════════════════════════════════════════════
-    //  ROUTES DYNAMIQUES (avec paramètres ID)
-    // ══════════════════════════════════════════════
-
-    default:
         // --- Espace Chef de Département : Supervision (relances) ---
         // IMPORTANT : testées en premier (même raison que pour /marketiste/...)
         if (preg_match('/\/chef-departement\/supervision\/(\d+)\/edit/', $path, $m)) {
@@ -480,6 +504,12 @@ switch ($path) {
         }
         // --- Espace Marketiste : Supervision (relances) ---
         elseif (preg_match('/\/marketiste\/supervision\/(\d+)\/edit/', $path, $m)) {
+
+        // --- Espace Marketiste : Supervision (relances) ---
+        // IMPORTANT : ces routes sont testées EN PREMIER car les regex admin
+        // ci-dessous ne sont pas ancrées et matcheraient sinon /marketiste/... aussi.
+        if (preg_match('/\/marketiste\/supervision\/(\d+)\/edit/', $path, $m)) {
+
             AuthMiddleware::check(['MARKETISTE']);
             (new MarketisteSupervisionController())->edit($m[1]);
         } elseif (preg_match('/\/marketiste\/supervision\/(\d+)\/update/', $path, $m)) {
