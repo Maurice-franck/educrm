@@ -12,6 +12,10 @@ class RendezVous {
     public $objet;
     public $statut;
     public $observation;
+    public $prospect_nom;
+    public $prospect_telephone;
+    public $prospect_email;
+    public $marketiste_nom;
     
     public function __construct($db) {
         $this->conn = $db;
@@ -147,6 +151,10 @@ class RendezVous {
             $this->objet = $row['objet'];
             $this->statut = $row['statut'];
             $this->observation = $row['observation'];
+            $this->prospect_nom = $row['prospect_nom'];
+            $this->prospect_telephone = $row['prospect_telephone'];
+            $this->prospect_email = $row['prospect_email'];
+            $this->marketiste_nom = $row['marketiste_nom'];
             return true;
         }
         return false;
@@ -155,7 +163,8 @@ class RendezVous {
     // Mettre à jour un rendez-vous
     public function update() {
         $query = "UPDATE " . $this->table . " 
-                  SET date_rdv = :date_rdv,
+                  SET utilisateur_id = :utilisateur_id,
+                      date_rdv = :date_rdv,
                       heure_rdv = :heure_rdv,
                       lieu = :lieu,
                       objet = :objet,
@@ -169,6 +178,7 @@ class RendezVous {
         $this->objet = htmlspecialchars(strip_tags($this->objet));
         $this->observation = htmlspecialchars(strip_tags($this->observation));
         
+        $stmt->bindParam(":utilisateur_id", $this->utilisateur_id);
         $stmt->bindParam(":date_rdv", $this->date_rdv);
         $stmt->bindParam(":heure_rdv", $this->heure_rdv);
         $stmt->bindParam(":lieu", $this->lieu);
