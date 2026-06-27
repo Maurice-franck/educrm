@@ -120,7 +120,7 @@ $_SESSION['user_telephone'] = $data['telephone'];
         $languesAutorisees = ['fr', 'en'];
         $fuseauxAutorises  = DateTimeZone::listIdentifiers();
 
-        $langue = $_POST['app_langue'] ?? 'fr';
+       $_SESSION['app_langue'] = $langue;
         $fuseau = $_POST['app_fuseau'] ?? 'Africa/Douala';
 
         if (!in_array($langue, $languesAutorisees)) {

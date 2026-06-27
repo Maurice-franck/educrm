@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 /**
  * EduCRM — Point d'entrée principal
  * Architecture MVC — Programmation Orientée Objet
@@ -25,6 +27,7 @@ require_once 'controllers/marketiste/MarketisteProspectController.php';
 require_once 'controllers/chef-departement/ChefDepartementSupervisionController.php';
 require_once 'controllers/chef-departement/ChefDepartementRendezVousController.php';
 require_once 'controllers/chef-departement/ChefDepartementProspectController.php';
+require_once 'controllers/ParametreController.php';
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -70,6 +73,29 @@ switch ($path) {
     // ══════════════════════════════════════════════
     //  DASHBOARD (Admin + Chef de département)
     // ══════════════════════════════════════════════
+        case '/parametres':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->index();
+        break;
+
+    case '/parametres/profil':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateProfil();
+        break;
+
+    case '/parametres/mot-de-passe':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateMotDePasse();
+        break;
+
+    case '/parametres/application':
+        AuthMiddleware::check(['ADMIN']);
+        $controller = new ParametreController();
+        $controller->updateApplication();
+        break;
 
     case '/dashboard':
         AuthMiddleware::check(['ADMIN', 'CHEF_DEPARTEMENT']);
