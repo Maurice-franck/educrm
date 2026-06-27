@@ -104,7 +104,6 @@ class RendezVousController {
     public function show($id) {
         $this->rendezVous->id = $id;
         if($this->rendezVous->readOne()) {
-            $rendezVous = $this->rendezVous;
             require_once 'views/rendezvous/show.php';
         } else {
             $_SESSION['error'] = "Rendez-vous non trouvé.";
@@ -117,7 +116,6 @@ class RendezVousController {
     public function edit($id) {
         $this->rendezVous->id = $id;
         if($this->rendezVous->readOne()) {
-            $rendezVous = $this->rendezVous;
             $prospects = $this->prospect->readAll([])->fetchAll(PDO::FETCH_ASSOC);
             $marketistes = $this->utilisateur->readAll()->fetchAll(PDO::FETCH_ASSOC);
             require_once 'views/rendezvous/edit.php';
@@ -132,7 +130,6 @@ class RendezVousController {
     public function update($id) {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $this->rendezVous->id = $id;
-            $this->rendezVous->utilisateur_id = $_POST['utilisateur_id'] ?? null;
             $this->rendezVous->date_rdv = $_POST['date_rdv'];
             $this->rendezVous->heure_rdv = $_POST['heure_rdv'];
             $this->rendezVous->lieu = $_POST['lieu'];

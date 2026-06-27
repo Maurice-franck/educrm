@@ -1,21 +1,19 @@
 <?php
+// Démarrer la session
 session_start();
 
-require_once __DIR__ . '/../controllers/AuthController.php';
-require_once __DIR__ . '/../controllers/UtilisateurController.php';
-require_once __DIR__ . '/../controllers/ParametreController.php';
-
+// Routes pour la gestion des utilisateurs
 $request_uri = $_SERVER['REQUEST_URI'];
-$base_path   = '/educrm';
+$base_path = '/educrm';
 
+// Enlever le chemin de base
 $path = str_replace($base_path, '', $request_uri);
 $path = parse_url($path, PHP_URL_PATH);
-die("PATH = [" . $path . "]");
 
-switch (true) {
-
-    // ── AUTH ────────────────────────────────────────────
-    case $path === '/login':
+// Routing simple
+switch($path) {
+    case '/login':
+        require_once __DIR__ . '/controllers/AuthController.php';
         $controller = new AuthController();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller->processLogin();
@@ -24,8 +22,12 @@ switch (true) {
         }
         break;
 
-    case $path === '/logout':
-    case $path === '/deconnexion':
+    case '/logout':
+    case '/deconnexion':
+        // Déconnexion directe sans instancier le contrôleur (pas besoin de DB)
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $_SESSION = [];
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
@@ -38,76 +40,60 @@ switch (true) {
         header('Location: /educrm/login');
         exit;
 
-    // ── UTILISATEURS ────────────────────────────────────
-    case $path === '/utilisateurs':
+    case '/utilisateurs':
         $controller = new UtilisateurController();
         $controller->index();
         break;
-
-    case $path === '/utilisateurs/store':
+        
+    case 'views/utilisateurs/create':
+        $controller = new UtilisateurController();
+        $controller->create();
+        break;
+        
+    case '/utilisateurs/store':
         $controller = new UtilisateurController();
         $controller->store();
         break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)\/edit$/', $path, $matches):
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/edit/', $path, $matches) ? true : false:
         $controller = new UtilisateurController();
         $controller->edit($matches[1]);
         break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)\/update$/', $path, $matches):
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/update/', $path, $matches) ? true : false:
         $controller = new UtilisateurController();
         $controller->update($matches[1]);
         break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)\/deactivate$/', $path, $matches):
-        $controller = new UtilisateurController();
-        $controller->deactivate($matches[1]);
-        break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)\/activate$/', $path, $matches):
-        $controller = new UtilisateurController();
-        $controller->activate($matches[1]);
-        break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)\/reset-password$/', $path, $matches):
-        $controller = new UtilisateurController();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $controller->resetPassword($matches[1]);
-        } else {
-            $controller->showResetPassword($matches[1]);
-        }
-        break;
-
-    case (bool) preg_match('/^\/utilisateurs\/(\d+)$/', $path, $matches):
+        
+    case preg_match('/\/utilisateurs\/(\d+)/', $path, $matches) && $_SERVER['REQUEST_METHOD'] == 'GET':
         $controller = new UtilisateurController();
         $controller->show($matches[1]);
         break;
-
-    // ── PARAMÈTRES ──────────────────────────────────────
-    case $path === '/parametres':
-        $controller = new ParametreController();
-        $controller->index();
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/deactivate/', $path, $matches) ? true : false:
+        $controller = new UtilisateurController();
+        $controller->deactivate($matches[1]);
         break;
-
-    case $path === '/parametres/profil' && $_SERVER['REQUEST_METHOD'] === 'POST':
-        $controller = new ParametreController();
-        $controller->updateProfil();
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/activate/', $path, $matches) ? true : false:
+        $controller = new UtilisateurController();
+        $controller->activate($matches[1]);
         break;
-
-    case $path === '/parametres/mot-de-passe' && $_SERVER['REQUEST_METHOD'] === 'POST':
-        $controller = new ParametreController();
-        $controller->updateMotDePasse();
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/reset-password/', $path, $matches) && $_SERVER['REQUEST_METHOD'] == 'GET':
+        $controller = new UtilisateurController();
+        $controller->showResetPassword($matches[1]);
         break;
-
-    case $path === '/parametres/application' && $_SERVER['REQUEST_METHOD'] === 'POST':
-        $controller = new ParametreController();
-        $controller->updateApplication();
+        
+    case preg_match('/\/utilisateurs\/(\d+)\/reset-password/', $path, $matches) && $_SERVER['REQUEST_METHOD'] == 'POST':
+        $controller = new UtilisateurController();
+        $controller->resetPassword($matches[1]);
         break;
-
-    // ── 404 ─────────────────────────────────────────────
+        
     default:
+        // Page 404
         http_response_code(404);
-        echo "Page non trouvée : " . htmlspecialchars($path);
+        echo "Page non trouvée";
         break;
 }
 ?>

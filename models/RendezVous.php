@@ -12,9 +12,7 @@ class RendezVous {
     public $objet;
     public $statut;
     public $observation;
-<<<<<<< HEAD
     public $departement_id;
-
     public $prospect_nom;
     public $prospect_telephone;
     public $prospect_email;
@@ -156,9 +154,7 @@ class RendezVous {
             $this->objet = $row['objet'];
             $this->statut = $row['statut'];
             $this->observation = $row['observation'];
-
             $this->departement_id = $row['departement_id'];
-
             $this->prospect_nom = $row['prospect_nom'];
             $this->prospect_telephone = $row['prospect_telephone'];
             $this->prospect_email = $row['prospect_email'];
@@ -171,8 +167,7 @@ class RendezVous {
     // Mettre à jour un rendez-vous
     public function update() {
         $query = "UPDATE " . $this->table . " 
-                  SET utilisateur_id = :utilisateur_id,
-                      date_rdv = :date_rdv,
+                  SET date_rdv = :date_rdv,
                       heure_rdv = :heure_rdv,
                       lieu = :lieu,
                       objet = :objet,
@@ -186,7 +181,6 @@ class RendezVous {
         $this->objet = htmlspecialchars(strip_tags($this->objet));
         $this->observation = htmlspecialchars(strip_tags($this->observation));
         
-        $stmt->bindParam(":utilisateur_id", $this->utilisateur_id);
         $stmt->bindParam(":date_rdv", $this->date_rdv);
         $stmt->bindParam(":heure_rdv", $this->heure_rdv);
         $stmt->bindParam(":lieu", $this->lieu);
@@ -299,18 +293,14 @@ class RendezVous {
         return $stmt;
     }
     
-
+    // Rendez-vous du jour
     public function getTodayRendezVous($marketiste_id = null, $departement_id = null) {
-=======
-    public function getTodayRendezVous($marketiste_id = null) {
-
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
         if (!empty($departement_id)) {
             $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
@@ -322,41 +312,27 @@ class RendezVous {
         if (!empty($departement_id)) {
             $query .= " AND s.departement_id = :departement_id";
         }
-=======
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE r.date_rdv = CURDATE()";
-        if (!empty($marketiste_id)) {
-            $query .= " AND r.utilisateur_id = :marketiste_id";
-        }
-
         $query .= " ORDER BY r.heure_rdv ASC";
         
         $stmt = $this->conn->prepare($query);
         if (!empty($marketiste_id)) {
             $stmt->bindParam(":marketiste_id", $marketiste_id);
         }
-
         if (!empty($departement_id)) {
             $stmt->bindParam(":departement_id", $departement_id);
         }
-
         $stmt->execute();
         return $stmt;
     }
     
     // Rendez-vous à venir
-
     public function getUpcomingRendezVous($limit = 10, $marketiste_id = null, $departement_id = null) {
-=======
-    public function getUpcomingRendezVous($limit = 10, $marketiste_id = null) {
-
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   p.telephone as prospect_telephone,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
         if (!empty($departement_id)) {
             $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
@@ -368,13 +344,6 @@ class RendezVous {
         if (!empty($departement_id)) {
             $query .= " AND s.departement_id = :departement_id";
         }
-=======
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE r.date_rdv >= CURDATE() AND r.statut IN ('PLANIFIE', 'CONFIRME')";
-        if (!empty($marketiste_id)) {
-            $query .= " AND r.utilisateur_id = :marketiste_id";
-        }
->>>>>>> 83832bd01f9ffda39297ceffdf66c3e1cfebbf6a
         $query .= " ORDER BY r.date_rdv ASC, r.heure_rdv ASC
                   LIMIT :limit";
         
@@ -382,27 +351,21 @@ class RendezVous {
         if (!empty($marketiste_id)) {
             $stmt->bindParam(":marketiste_id", $marketiste_id);
         }
-
         if (!empty($departement_id)) {
             $stmt->bindParam(":departement_id", $departement_id);
         }
-
         $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt;
     }
     
-
+    // Calendrier des rendez-vous par mois
     public function getCalendar($year, $month, $marketiste_id = null, $departement_id = null) {
-=======
-    public function getCalendar($year, $month, $marketiste_id = null) {
-
         $query = "SELECT r.*, 
                   CONCAT(p.nom, ' ', p.prenom) as prospect_nom,
                   CONCAT(u.nom, ' ', u.prenom) as marketiste_nom
                   FROM " . $this->table . " r
                   LEFT JOIN prospects p ON r.prospect_id = p.id
-
                   LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id";
         if (!empty($departement_id)) {
             $query .= " LEFT JOIN specialites s ON p.specialite_id = s.id";
@@ -414,13 +377,6 @@ class RendezVous {
         if (!empty($departement_id)) {
             $query .= " AND s.departement_id = :departement_id";
         }
-=======
-                  LEFT JOIN utilisateurs u ON r.utilisateur_id = u.id
-                  WHERE YEAR(r.date_rdv) = :year AND MONTH(r.date_rdv) = :month";
-        if (!empty($marketiste_id)) {
-            $query .= " AND r.utilisateur_id = :marketiste_id";
-        }
-
         $query .= " ORDER BY r.date_rdv ASC, r.heure_rdv ASC";
         
         $stmt = $this->conn->prepare($query);
@@ -429,11 +385,9 @@ class RendezVous {
         if (!empty($marketiste_id)) {
             $stmt->bindParam(":marketiste_id", $marketiste_id);
         }
-
         if (!empty($departement_id)) {
             $stmt->bindParam(":departement_id", $departement_id);
         }
-
         $stmt->execute();
         return $stmt;
     }
